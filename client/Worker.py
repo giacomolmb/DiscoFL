@@ -37,4 +37,7 @@ class Worker:
         print("Worker " + self.account.address + " has joined the task")
 
     def get_model_uri(self):
-        print('Contract value: {}'.format(self.contract_instance.functions.getModelURI().call()))
+        print('SC Response - Model URI: {}'.format(self.contract_instance.functions.getModelURI().call()))
+
+    def get_round_number(self):
+        print('SC Response - Round number: {}'.format(self.contract_instance.functions.getRound().call()))

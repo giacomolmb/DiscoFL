@@ -25,7 +25,7 @@ class Requester:
         construct_txn = self.contract.constructor().buildTransaction({
             'from': self.account.address,
             'nonce': self.w3.eth.getTransactionCount(self.account.address),
-            'gas': 2008712,
+            'gas': 2508712,
             'gasPrice': self.w3.toWei('21', 'gwei')
         })
 
@@ -56,3 +56,19 @@ class Requester:
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
         print(tx_receipt)
         print("Task initialized successfully!")
+
+    def start_task(self):
+        contract_instance = self.w3.eth.contract(abi=self.truffle_file['abi'], address=self.contract_address)
+
+        tx = contract_instance.functions.startTask().buildTransaction({
+            "gasPrice": self.w3.eth.gas_price, 
+            "chainId": 1337, 
+            "from": self.account.address, 
+            'nonce': self.w3.eth.getTransactionCount(self.account.address)
+        })
+        #Get tx receipt to get contract address
+        signed_tx = self.w3.eth.account.signTransaction(tx, self.key)
+        tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
+        print(tx_receipt)
+        print("Task started successfully!")

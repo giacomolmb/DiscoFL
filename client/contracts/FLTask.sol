@@ -20,13 +20,13 @@ contract FLTask {
     struct Worker {
         bool registered;
         uint8 workerId;
-        uint16 latestScore;
     }
 
     //struct representing the evaluation submitted by a worker at the end of the evaluation phase
     struct SubmittedEval {
         address workerAddress;
-        uint16[] scores; 
+        address[] addressScored;
+        uint16[] scores;
         //uint16 score; //only for testing
     }
 
@@ -35,9 +35,11 @@ contract FLTask {
     uint8 private round; //number of the actual round
     uint8 public numWorkers = 0;
     mapping(address => Worker) private workers; //to each worker address is associated his worker object
-    mapping(uint8 => SubmittedEval[]) private roundScores;//to each round are associated the submitted evaluations
+    SubmittedEval[] private roundScores; //to each round are associated the submitted evaluations
+    address[] private roundTopK;
     address public immutable requester;
     string private modelURI; //URI of the model pushed by the requester at initialization phase
+    uint256 roundMoney;
     TaskStatus public taskStatus;
 
     constructor() {
@@ -80,6 +82,7 @@ contract FLTask {
         require(msg.value != 0, "Cannot initialize contract without deposit");
         modelURI = _modelURI;
         numRounds = _numRounds;
+        roundMoney = msg.value / numRounds;
         taskStatus = TaskStatus.Initialized;
     }
 
@@ -91,6 +94,7 @@ contract FLTask {
 
     // advance round
     function nextRound() public onlyRequester taskRunning {
+        delete roundScores;
         round++;
     }
 
@@ -130,22 +134,41 @@ contract FLTask {
         numWorkers--;
     }
 
-    function submitScore(uint16[] memory _scores) public onlyWorker taskRunning {
-        roundScores[round].push(SubmittedEval({
+    function submitScore(address[] memory _workers, uint16[] memory _scores) public onlyWorker taskRunning {
+        roundScores.push(SubmittedEval({
             workerAddress: msg.sender,
+            addressScored: _workers,
             scores: _scores
         }));
     }
 
     function getSubmissionsNumber() public onlyRequester view returns (uint8){
-        return uint8(roundScores[round].length);
+        return uint8(roundScores.length);
     }
 
     function getSubmissions() public onlyRequester taskRunning view returns (SubmittedEval[] memory) {
         SubmittedEval[] memory evals = new SubmittedEval[](getSubmissionsNumber());
-        for (uint8 i = 0; i < roundScores[round].length; i++){
-            evals[i] = roundScores[round][i];
+        for (uint8 i = 0; i < roundScores.length; i++){
+            evals[i] = roundScores[i];
         }
         return evals;
+    }
+
+    function submitRoundTopK(address[] memory _topK) public onlyRequester {
+        roundTopK = _topK;
+    }
+
+    function distributeRewards() public onlyRequester payable {
+        uint256 amountToDistribute = roundMoney;
+        uint8 usersToReward = uint8(roundTopK.length);
+        uint8 usersRewarded;
+        for(usersRewarded = 0; usersRewarded < usersToReward-3; usersRewarded++){
+            payable(roundTopK[usersRewarded]).transfer(amountToDistribute / 2);
+            amountToDistribute = amountToDistribute / 2;
+        }
+        amountToDistribute = amountToDistribute / 2;
+        uint256 finalPortion = amountToDistribute / usersToReward;
+        payable(roundTopK[usersRewarded]).transfer(amountToDistribute + finalPortion);
+        payable(roundTopK[usersRewarded + 1]).transfer(amountToDistribute - finalPortion);
     }
 }
