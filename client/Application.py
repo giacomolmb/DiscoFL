@@ -25,7 +25,7 @@ class Application:
         load_dotenv()
         self.requester = Requester(os.getenv('REQUESTER_KEY'))
         self.requester.deploy_contract()
-        self.requester.init_task(1000000000, self.fspath, self.num_rounds)
+        self.requester.init_task(10000000000000000000, self.fspath, self.num_rounds)
         print("Task initialized")
 
         # in the beginning, all have the same model
