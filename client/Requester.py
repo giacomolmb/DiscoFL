@@ -5,10 +5,7 @@ import numpy as np
 from web3 import Web3, HTTPProvider
 
 class Requester:
-
-    w3 = None
     truffle_file = json.load(open('./build/contracts/FLTask.json'))
-    contract = None
 
     def __init__(self, key):
         self.key = key

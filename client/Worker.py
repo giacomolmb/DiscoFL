@@ -10,10 +10,7 @@ from Model import Model
 # this simulates one worker. Usually each device has one of these
 
 class Worker:
-    key = ""
-    w3 = None
     truffle_file = json.load(open('./build/contracts/FLTask.json'))
-    contract_instance = None
     
     def __init__(self, fspath, device, num_workers, idx, topk, key):
         self.bcc = BCCommunicator()
