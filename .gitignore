@@ -1,5 +1,8 @@
 # all files that are not model nor optimizer
 *round*index*.pt
+.DS_Store
+client/data/
+client/fs-sim/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
