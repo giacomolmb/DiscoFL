@@ -33,7 +33,7 @@ contract FLTask {
     
     uint8 private numRounds; //number of rounds of the fl task
     uint8 private round; //number of the actual round
-    uint8 public numWorkers = 0;
+    uint8 private numWorkers = 0;
     mapping(address => Worker) private workers; //to each worker address is associated his worker object
     SubmittedEval[] private roundScores; //to each round are associated the submitted evaluations
     address[] private roundTopK;
@@ -101,6 +101,11 @@ contract FLTask {
     // get the number of actual round
     function getRound() public taskRunning view returns (uint8){
         return round;
+    }
+
+    // get the number of workers
+    function getNumWorkers() public view returns (uint8){
+        return numWorkers;
     }
 
     // get the amount of money deposited in the smart contract

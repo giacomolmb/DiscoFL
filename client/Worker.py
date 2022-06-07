@@ -81,12 +81,11 @@ class Worker:
         tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
         print(tx_receipt)
-        print("Worker " + self.account.address + " has joined the task")
 
     def get_model_uri(self):
-        print('SC Response - Model URI: {}'.format(self.contract_instance.functions.getModelURI().call()))
+        return self.contract_instance.functions.getModelURI().call()
 
     def get_round_number(self):
-        print('SC Response - Round number: {}'.format(self.contract_instance.functions.getRound().call()))
+        return self.contract_instance.functions.getRound().call()
 
         

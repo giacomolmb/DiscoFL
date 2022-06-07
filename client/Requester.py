@@ -6,6 +6,7 @@ from web3 import Web3, HTTPProvider
 
 class Requester:
     truffle_file = json.load(open('./build/contracts/FLTask.json'))
+    score_matrix = None
 
     def __init__(self, key):
         self.key = key
@@ -53,12 +54,14 @@ class Requester:
         tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
         print(tx_receipt)
-        print("Task initialized successfully!")
+    
+    def init_score_matrix(self):
+        self.score_matrix = np.empty((self.num_workers, self.num_workers))
 
     def start_task(self):
-        contract_instance = self.w3.eth.contract(abi=self.truffle_file['abi'], address=self.contract_address)
+        self.contract_instance = self.w3.eth.contract(abi=self.truffle_file['abi'], address=self.contract_address)
 
-        tx = contract_instance.functions.startTask().buildTransaction({
+        tx = self.contract_instance.functions.startTask().buildTransaction({
             "gasPrice": self.w3.eth.gas_price, 
             "chainId": 1337, 
             "from": self.account.address, 
@@ -69,8 +72,36 @@ class Requester:
         tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
         print(tx_receipt)
-        print("Task started successfully!")
+
+        self.num_workers = self.contract_instance.functions.getNumWorkers().call() 
+        self.init_score_matrix()
     
+    def next_round(self):
+        self.contract_instance = self.w3.eth.contract(abi=self.truffle_file['abi'], address=self.contract_address)
+
+        tx = self.contract_instance.functions.nextRound().buildTransaction({
+            "gasPrice": self.w3.eth.gas_price, 
+            "chainId": 1337, 
+            "from": self.account.address, 
+            'nonce': self.w3.eth.getTransactionCount(self.account.address)
+        })
+        #Get tx receipt to get contract address
+        signed_tx = self.w3.eth.account.signTransaction(tx, self.key)
+        tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
+        print(tx_receipt)
+
+        self.init_score_matrix()
+    
+    def push_scores(self, index_score_tuple):
+        index = index_score_tuple[0]
+        scores = index_score_tuple[1]
+        print(index)
+        print(scores)
+        self.score_matrix[index] = np.array(scores)
+
+    def get_score_matrix(self):
+        return self.score_matrix
 
     # calculate the top K of the round using the contribution scoring procedure from blockflow
     # inputs: score matrix dimension n x n where n = num_workers, number of workers
@@ -115,5 +146,51 @@ class Requester:
         
         return overall_scores
 
+    # given the array of addresses and their respective overall score, returns the ordered top k addresses
+    # note: k = num_workers in this first implementation, in future work add option to edit top k length 
+    def compute_top_k(self, addresses, scores):
+        temp_addresses = np.array(addresses)
+        temp_scores = np.array(scores)
+
+        top_k = []
+
+        while len(temp_scores) > 0:
+            print(temp_scores.max())
+            index = np.where(temp_scores == temp_scores.max())[0][0]
+            top_k.append(temp_addresses[index])
+            temp_scores = np.delete(temp_scores, index)
+            temp_addresses = np.delete(temp_addresses, index)
+
+        return top_k
+
+    def submit_top_k(self, top_k):
+        self.contract_instance = self.w3.eth.contract(abi=self.truffle_file['abi'], address=self.contract_address)
+
+        tx = self.contract_instance.functions.submitRoundTopK(top_k).buildTransaction({
+            "gasPrice": self.w3.eth.gas_price, 
+            "chainId": 1337, 
+            "from": self.account.address, 
+            'nonce': self.w3.eth.getTransactionCount(self.account.address)
+        })
+        #Get tx receipt to get contract address
+        signed_tx = self.w3.eth.account.signTransaction(tx, self.key)
+        tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
+        print(tx_receipt)
+
+    def distribute_rewards(self):
+        self.contract_instance = self.w3.eth.contract(abi=self.truffle_file['abi'], address=self.contract_address)
+
+        tx = self.contract_instance.functions.distributeRewards().buildTransaction({
+            "gasPrice": self.w3.eth.gas_price, 
+            "chainId": 1337, 
+            "from": self.account.address, 
+            'nonce': self.w3.eth.getTransactionCount(self.account.address)
+        })
+        #Get tx receipt to get contract address
+        signed_tx = self.w3.eth.account.signTransaction(tx, self.key)
+        tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+        tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
+        print(tx_receipt)
         
         
