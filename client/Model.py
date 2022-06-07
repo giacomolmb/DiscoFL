@@ -111,7 +111,7 @@ class Model():
             
             
         sorted_models = sorted(res, key=lambda t: t[0])
-        return self.rank_models(sorted_models),  self.get_top_k(sorted_models)
+        return self.rank_models(sorted_models),  self.get_top_k(sorted_models), res
             
             
             

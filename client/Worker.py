@@ -54,14 +54,14 @@ class Worker:
         # retrieve all models of the other workers
         state_dicts = self.fsc.fetch_evaluation_models(self.idx, round, self.num_workers)
         
-        ranks, topk_dicts = self.model.eval(state_dicts)
+        ranks, topk_dicts, unsorted_scores = self.model.eval(state_dicts)
         
         # add our own model for the averaging
         topk_dicts.append(self.model.model.state_dict())
         
         # @TODO add blockchain functionality with sending the ranks to BC here
         
-        return self.model.average(topk_dicts)
+        return self.model.average(topk_dicts), topk_dicts, unsorted_scores
         
     
     
