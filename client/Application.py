@@ -36,16 +36,11 @@ class Application:
             self.workers.append(Worker(self.fspath, self.DEVICE, self.num_workers, i, 3, os.getenv('WORKER' + str(i+1) + '_KEY'), i < self.num_evil))
             self.worker_dict[i] = self.workers[i].account.address
             self.workers[i].join_task(self.requester.get_contract_address())
-            print("Worker " + self.worker_dict[i] + " has joined the task")
 
         self.requester.start_task()
-        print("Task started!")
-        print("Number of workers joining the task: " + str(self.requester.num_workers))
 
         for round in range(self.num_rounds):
-            print('Starting round {}'.format(round))
             for idx, worker in enumerate(self.workers):
-                print('Worker {} starts to train'.format(idx))
                 worker.train(round)
             
             # starting eval phase

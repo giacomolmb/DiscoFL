@@ -81,7 +81,6 @@ class Worker:
         signed_tx = self.w3.eth.account.signTransaction(tx, self.key)
         tx_hash = self.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
         tx_receipt = self.w3.eth.getTransactionReceipt(tx_hash)
-        print(tx_receipt)
 
     def get_model_uri(self):
         return self.contract_instance.functions.getModelURI().call()
