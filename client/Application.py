@@ -2,9 +2,9 @@ from BCCommunicator import BCCommunicator
 from FSCommunicator import FSCommunicator
 from Model import Model
 import torch
-
+import os
 from Worker import Worker
-
+from dotenv import load_dotenv
 
 # Main class to simulate the distributed application
 class Application:
@@ -19,13 +19,13 @@ class Application:
         
         
     def run(self):
-        
+        load_dotenv()
         # in the beginning, all have the same model
         # the optimizer stays the same over all round
         # initialize all workers sequentially
         # in a real application, each device would run one worker class
         for i in range(self.num_workers):
-            self.workers.append(Worker(self.fspath, self.DEVICE, self.num_workers, i, 3))
+            self.workers.append(Worker(self.fspath, self.DEVICE, self.num_workers, i, 3, os.getenv('WORKER' + str(i+1) + '_KEY')))
             
         
     
