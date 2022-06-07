@@ -15,10 +15,11 @@ class Worker:
     truffle_file = json.load(open('./build/contracts/FLTask.json'))
     contract_instance = None
     
-    def __init__(self, fspath, device, num_workers, idx, topk, key):
+    def __init__(self, fspath, device, num_workers, idx, topk, key, is_evil):
         self.bcc = BCCommunicator()
         self.fsc = FSCommunicator(fspath, device)
         model, opt = self.fsc.fetch_initial_model()
+        self.is_evil = is_evil
         
         # This is incredibly hacky and should definitely not be done like this
         # we use pythons reflection ability to create the correct optimizer
@@ -30,7 +31,7 @@ class Worker:
         except:
             pass
         opt = class_(model.parameters(), **(copy))
-        self.model = Model(num_workers, idx, model, opt, device, topk)
+        self.model = Model(num_workers, idx, model, opt, device, topk, is_evil)
         self.idx = idx
         self.num_workers = num_workers
 

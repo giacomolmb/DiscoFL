@@ -8,7 +8,8 @@ if __name__ == '__main__':
     # not needed in simulation
     parser.add_argument('--index', metavar='-i', type=int, help='Index of current worker used for data splits')
     parser.add_argument('--fspath', metavar='-p', type=str, help='Path to the folder where the models are stored')
+    parser.add_argument('--num_evil', metavar='-e', default=0, type=int, help='Number of evil workers you want')
     args = parser.parse_args()
-    sim = Application(args.num_workers, args.num_rounds, args.fspath)
+    sim = Application(args.num_workers, args.num_rounds, args.fspath, args.num_evil)
     sim.run()
     

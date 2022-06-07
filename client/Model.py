@@ -10,13 +10,15 @@ class Model():
     batch_size = 64
     epochs = 3
 
-    def __init__(self, num_workers, idx, model, optimizer, device, topk):
+    def __init__(self, num_workers, idx, model, optimizer, device, topk, isEvil = False):
         self.num_workers = num_workers
         self.idx = idx
         self.model = model
         self.optimizer = optimizer
         self.DEVICE = device
         self.topk = topk
+        self.isEvil = isEvil
+        
         
         # this would be generic in a real application
         self.train_loader = torch.utils.data.DataLoader(
@@ -36,6 +38,8 @@ class Model():
                                                (0.1307,), (0.3081,))
                                        ])),
             batch_size=self.batch_size, shuffle=True)
+        
+        self.garbage = torch.rand((64,1,28,28))
         
         # find the datasets indices
         # also this would not be implemented like this in the real application
@@ -71,7 +75,11 @@ class Model():
             for idx, (data, target) in enumerate(self.train_loader):
                 if idx >= self.start_idx_train and idx < self.start_idx_train + self.num_train_batches:
                     self.optimizer.zero_grad()
-                    output = self.model(data.to(self.DEVICE))
+                    if not self.isEvil:
+                        output = self.model(data.to(self.DEVICE))
+                    else:
+                        output = self.model(self.garbage.to(self.DEVICE))
+                        target = torch.randint(0, 8, (64,1)).reshape(64)
                     loss = F.nll_loss(output, target.to(self.DEVICE))
                     loss.backward()
                     self.optimizer.step()

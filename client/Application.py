@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 # Main class to simulate the distributed application
 class Application:
     
-    def __init__(self, num_workers, num_rounds, fspath):
+    def __init__(self, num_workers, num_rounds, fspath, num_evil=0):
         self.num_workers = num_workers
         self.num_rounds = num_rounds
         self.DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -18,6 +18,7 @@ class Application:
         self.workers = []
         self.topk = num_workers
         self.worker_dict = {}
+        self.num_evil = num_evil
         
         
     def run(self):
@@ -28,7 +29,7 @@ class Application:
         # initialize all workers sequentially
         # in a real application, each device would run one worker class
         for i in range(self.num_workers):
-            self.workers.append(Worker(self.fspath, self.DEVICE, self.num_workers, i, 3, os.getenv('WORKER' + str(i+1) + '_KEY')))
+            self.workers.append(Worker(self.fspath, self.DEVICE, self.num_workers, i, 3, os.getenv('WORKER' + str(i+1) + '_KEY'), i < self.num_evil))
             self.worker_dict[i] = self.workers[i].account.address
             
     
